@@ -105,7 +105,9 @@ class LibraryHandler(BaseHTTPRequestHandler):
         return json.loads(raw)
 
     def _serve_file(self, filename, content_type):
-        filepath = os.path.join(STATIC_DIR, filename)
+        filepath = os.path.join(BASE_DIR, filename)
+        if not os.path.exists(filepath):
+            filepath = os.path.join(STATIC_DIR, filename)
         if not os.path.exists(filepath):
             self.send_error(404, "Dosya bulunamadi")
             return

@@ -1,9 +1,3 @@
 {
-  "version": 2,
-  "cleanUrls": true,
-  "rewrites": [
-    { "source": "/style.css", "destination": "/static/style.css" },
-    { "source": "/script.js", "destination": "/static/script.js" },
-    { "source": "/(.*)", "destination": "/static/index.html" }
-  ]
+  "cleanUrls": true
 }
