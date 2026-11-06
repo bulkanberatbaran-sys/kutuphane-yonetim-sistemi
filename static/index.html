@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kütüphane Yönetim Sistemi</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <div class="brand">
+                <span class="logo">📚</span>
+                <div>
+                    <h1>Kütüphane Yönetim Sistemi</h1>
+                    <p>Basit ve Hızlı Kütüphane Takibi</p>
+                </div>
+            </div>
+            <nav class="tabs">
+                <button class="tab-btn active" data-tab="books">📖 Kitaplar</button>
+                <button class="tab-btn" data-tab="loans">🔄 Ödünç / İade</button>
+                <button class="tab-btn" data-tab="members">👥 Üyeler</button>
+                <button class="tab-btn btn-outline" id="btn-export" title="Verileri JSON olarak yedekle">💾 Yedek İndir</button>
+                <label class="tab-btn btn-outline" title="Yedek dosyasından geri yükle" style="margin:0;display:inline-flex;align-items:center;">
+                    📂 Yedek Yükle
+                    <input type="file" id="input-import" accept=".json" style="display:none">
+                </label>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Özet Kartları -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">Toplam Kitap Çeşidi</span>
+                <strong class="stat-value" id="stat-titles">0</strong>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Toplam Kitap Adedi</span>
+                <strong class="stat-value" id="stat-books">0</strong>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Kayıtlı Üye</span>
+                <strong class="stat-value" id="stat-members">0</strong>
+            </div>
+            <div class="stat-card highlight">
+                <span class="stat-label">Ödünçteki Kitaplar</span>
+                <strong class="stat-value" id="stat-loans">0</strong>
+            </div>
+        </section>
+
+        <div id="toast" class="toast hidden"></div>
+
+        <!-- KİTAPLAR SEKMESİ -->
+        <section id="tab-books" class="tab-content active">
+            <div class="panel-grid">
+                <div class="card form-card">
+                    <h2>+ Yeni Kitap Ekle</h2>
+                    <form id="book-form">
+                        <div class="form-group">
+                            <label>Kitap Adı *</label>
+                            <input type="text" id="book-title" placeholder="Örn: Çalıkuşu" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Yazar *</label>
+                            <input type="text" id="book-author" placeholder="Örn: Reşat Nuri Güntekin" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Kategori</label>
+                            <select id="book-category">
+                                <option value="Roman">Roman</option>
+                                <option value="Edebiyat">Edebiyat</option>
+                                <option value="Tarih">Tarih</option>
+                                <option value="Bilim">Bilim</option>
+                                <option value="Felsefe">Felsefe</option>
+                                <option value="Çocuk">Çocuk</option>
+                                <option value="Genel">Genel</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>ISBN</label>
+                                <input type="text" id="book-isbn" placeholder="İsteğe bağlı">
+                            </div>
+                            <div class="form-group">
+                                <label>Stok Adedi</label>
+                                <input type="number" id="book-stock" value="1" min="1" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary full-width">Kitabı Kaydet</button>
+                    </form>
+                </div>
+
+                <div class="card list-card">
+                    <div class="list-header">
+                        <h2>Kitap Listesi</h2>
+                        <input type="text" id="search-books" class="search-input" placeholder="Kitap, yazar veya kategori ara...">
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Kitap Adı</th>
+                                    <th>Yazar</th>
+                                    <th>Kategori</th>
+                                    <th>Durum / Stok</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="books-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ÖDÜNÇ / İADE SEKMESİ -->
+        <section id="tab-loans" class="tab-content">
+            <div class="panel-grid">
+                <div class="card form-card">
+                    <h2>🔄 Kitap Ödünç Ver</h2>
+                    <form id="loan-form">
+                        <div class="form-group">
+                            <label>Kitap Seçin *</label>
+                            <select id="loan-book" required>
+                                <option value="">-- Kitap Seçin --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Üye Seçin *</label>
+                            <select id="loan-member" required>
+                                <option value="">-- Üye Seçin --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>İade Süresi (Gün)</label>
+                            <select id="loan-days">
+                                <option value="7">7 Gün (1 Hafta)</option>
+                                <option value="14" selected>14 Gün (2 Hafta)</option>
+                                <option value="30">30 Gün (1 Ay)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary full-width">Ödünç Ver</button>
+                    </form>
+                </div>
+
+                <div class="card list-card">
+                    <div class="list-header">
+                        <h2>Ödünç Hareketleri</h2>
+                        <input type="text" id="search-loans" class="search-input" placeholder="Kitap veya üye ara...">
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Kitap</th>
+                                    <th>Üye</th>
+                                    <th>Veriliş Tarihi</th>
+                                    <th>Son Teslim</th>
+                                    <th>Durum</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="loans-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ÜYELER SEKMESİ -->
+        <section id="tab-members" class="tab-content">
+            <div class="panel-grid">
+                <div class="card form-card">
+                    <h2>+ Yeni Üye Kaydı</h2>
+                    <form id="member-form">
+                        <div class="form-group">
+                            <label>Ad Soyad *</label>
+                            <input type="text" id="member-name" placeholder="Örn: Zeynep Kaya" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Telefon</label>
+                            <input type="text" id="member-phone" placeholder="Örn: 0532 000 00 00">
+                        </div>
+                        <div class="form-group">
+                            <label>E-Posta</label>
+                            <input type="email" id="member-email" placeholder="Örn: zeynep@mail.com">
+                        </div>
+                        <button type="submit" class="btn btn-primary full-width">Üyeyi Kaydet</button>
+                    </form>
+                </div>
+
+                <div class="card list-card">
+                    <div class="list-header">
+                        <h2>Üye Listesi</h2>
+                        <input type="text" id="search-members" class="search-input" placeholder="Üye adı veya telefon ara...">
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Ad Soyad</th>
+                                    <th>Telefon</th>
+                                    <th>E-Posta</th>
+                                    <th>Aldığı Kitap</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="members-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
